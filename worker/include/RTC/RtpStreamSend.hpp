@@ -3,7 +3,7 @@
 
 #include "RTC/RateCalculator.hpp"
 #include "RTC/RtpStream.hpp"
-#include <deque>
+#include <array>
 
 namespace RTC
 {
@@ -36,23 +36,43 @@ namespace RTC
 			bool rtxEncoded{ false };
 		};
 
+		class Bucket {
+		public:
+			static constexpr size_t BucketSize = 256;
+			StorageItem* Get(size_t pos) const;
+			void Insert(size_t pos, StorageItem* item);
+			void Remove(size_t pos);
+			void Clear();
+			bool IsEmpty() const;
+		private:
+			std::array<StorageItem*, BucketSize> buffer {};
+			size_t count { 0 };
+		};
+
 	private:
+
 		// Special container that can store `StorageItem*` elements addressable by their `uint16_t`
 		// sequence number, while only taking as little memory as necessary to store the range between
 		// minimum and maximum sequence number instead all 65536 potential elements.
 		class StorageItemBuffer
 		{
+			static constexpr size_t BucketsCount = 256;
 		public:
 			~StorageItemBuffer();
 
-			StorageItem* Get(uint16_t seq);
+			StorageItem* Get(uint16_t seq) const;
 			bool Insert(uint16_t seq, StorageItem* storageItem);
 			bool Remove(uint16_t seq);
 			void Clear();
-
+			StorageItem* GetOldest() const;
 		private:
-			uint16_t startSeq{ 0 };
-			std::deque<StorageItem*> buffer;
+			void TryUpdateOldest(uint16_t seq, StorageItem* storageItem);
+			void InvalidateOldest(uint16_t prevOldest);
+			static size_t GetBucketIndex(uint16_t seq);
+			static size_t GetPositionInBucket(uint16_t seq);
+
+			int32_t oldestSeq { -1 };
+			std::array<Bucket*, BucketsCount> buckets {};
 		};
 
 	public:
@@ -91,11 +111,9 @@ namespace RTC
 		uint32_t lostPriorScore{ 0u }; // Packets lost at last interval for score calculation.
 		uint32_t sentPriorScore{ 0u }; // Packets sent at last interval for score calculation.
 		StorageItemBuffer storageItemBuffer;
-		uint16_t bufferStartSeq{ 0u };
 		std::string mid;
 		bool useNack;
 		uint32_t retransmissionBufferSize;
-		bool firstPacket{ true };
 		uint16_t rtxSeq{ 0u };
 		RTC::RtpDataCounter transmissionCounter;
 	};
