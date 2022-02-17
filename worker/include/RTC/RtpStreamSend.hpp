@@ -54,7 +54,6 @@ namespace RTC
 			void Clear();
 			StorageItem* GetOldest() const;
 		private:
-			void TryUpdateOldest(uint16_t seq, StorageItem* storageItem);
 			void InvalidateOldest(uint16_t prevOldest);
 			static size_t GetBucketIndex(uint16_t seq);
 			static size_t GetPositionInBucket(uint16_t seq);

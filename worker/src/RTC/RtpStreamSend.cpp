@@ -64,7 +64,22 @@ namespace RTC
 
 		this->buckets[bucketIdx]->Insert(inBucketPos, storageItem);
 
-		this->TryUpdateOldest(seq, storageItem);
+		// Try to update oldest packet sequence number
+		auto oldest = this->GetOldest();
+
+		if (!oldest)
+		{
+			this->oldestSeq = seq;
+		}
+		else if (
+			SeqManager<uint32_t>::IsSeqHigherThan(
+				oldest->originalPacket->GetTimestamp(),
+				storageItem->originalPacket->GetTimestamp()
+			)
+		)
+		{
+			this->oldestSeq = seq;
+		}
 
 		return true;
 	}
@@ -137,22 +152,6 @@ namespace RTC
 		}
 
 		return nullptr;
-	}
-
-	void RtpStreamSend::StorageItemBuffer::TryUpdateOldest(uint16_t seq, RtpStreamSend::StorageItem* storageItem)
-	{
-		auto oldest = this->GetOldest();
-
-		if (!oldest)
-		{
-			this->oldestSeq = seq;
-			return;
-		}
-
-		if (SeqManager<uint32_t>::IsSeqHigherThan(oldest->originalPacket->GetTimestamp(), storageItem->originalPacket->GetTimestamp()))
-		{
-			this->oldestSeq = seq;
-		}
 	}
 
 	void RtpStreamSend::StorageItemBuffer::InvalidateOldest(uint16_t prevOldest)
