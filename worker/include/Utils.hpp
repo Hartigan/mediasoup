@@ -4,11 +4,11 @@
 #include "common.hpp"
 #include "Logger.hpp"
 #include <openssl/hmac.h>
+#include <array>
 #include <cmath>
 #include <cstring> // std::memcmp(), std::memcpy()
 #include <nlohmann/json.hpp>
 #include <string>
-#include <array>
 #ifdef _WIN32
 #include <ws2ipdef.h>
 // https://stackoverflow.com/a/24550632/2085408
@@ -392,7 +392,8 @@ namespace Utils
 	};
 
 	template<typename T, std::size_t BucketSize>
-	class Bucket {
+	class Bucket
+	{
 	public:
 		T* Get(size_t pos) const
 		{
@@ -439,8 +440,8 @@ namespace Utils
 		}
 
 	private:
-		std::array<T*, BucketSize> buffer {};
-		size_t count { 0 };
+		std::array<T*, BucketSize> buffer{};
+		size_t count{ 0 };
 	};
 
 } // namespace Utils

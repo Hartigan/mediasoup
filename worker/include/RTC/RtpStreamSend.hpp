@@ -37,9 +37,9 @@ namespace RTC
 		};
 
 		static constexpr size_t BucketsCount = 256;
-		static constexpr size_t BucketSize = 256;
-	private:
+		static constexpr size_t BucketSize   = 256;
 
+	private:
 		// Special container that can store `StorageItem*` elements addressable by their `uint16_t`
 		// sequence number, while only taking as little memory as necessary to store the range between
 		// minimum and maximum sequence number instead all 65536 potential elements.
@@ -53,13 +53,14 @@ namespace RTC
 			bool Remove(uint16_t seq);
 			void Clear();
 			StorageItem* GetOldest() const;
+
 		private:
 			void InvalidateOldest(uint16_t prevOldest);
 			static size_t GetBucketIndex(uint16_t seq);
 			static size_t GetPositionInBucket(uint16_t seq);
 
-			int32_t oldestSeq { -1 };
-			std::array<Utils::Bucket<StorageItem, BucketSize>*, BucketsCount> buckets {};
+			int32_t oldestSeq{ -1 };
+			std::array<Utils::Bucket<StorageItem, BucketSize>*, BucketsCount> buckets{};
 		};
 
 	public:

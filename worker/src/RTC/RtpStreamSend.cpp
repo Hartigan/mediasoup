@@ -11,7 +11,8 @@ namespace RTC
 	/* Static. */
 
 	thread_local static Utils::ObjectPool<RtpStreamSend::StorageItem> StorageItemPool;
-	thread_local static Utils::ObjectPool<Utils::Bucket<RtpStreamSend::StorageItem, RtpStreamSend::BucketSize>> StorageItemBucketPool;
+	thread_local static Utils::ObjectPool<Utils::Bucket<RtpStreamSend::StorageItem, RtpStreamSend::BucketSize>>
+	  StorageItemBucketPool;
 
 	// 17: 16 bit mask + the initial sequence number.
 	static constexpr size_t MaxRequestedPackets{ 17 };
@@ -52,7 +53,7 @@ namespace RTC
 
 	bool RtpStreamSend::StorageItemBuffer::Insert(uint16_t seq, StorageItem* storageItem)
 	{
-		auto bucketIdx = StorageItemBuffer::GetBucketIndex(seq);
+		auto bucketIdx   = StorageItemBuffer::GetBucketIndex(seq);
 		auto inBucketPos = StorageItemBuffer::GetPositionInBucket(seq);
 
 		if (!this->buckets[bucketIdx])
@@ -71,12 +72,8 @@ namespace RTC
 		{
 			this->oldestSeq = seq;
 		}
-		else if (
-			SeqManager<uint32_t>::IsSeqHigherThan(
-				oldest->originalPacket->GetTimestamp(),
-				storageItem->originalPacket->GetTimestamp()
-			)
-		)
+		else if (SeqManager<uint32_t>::IsSeqHigherThan(
+		           oldest->originalPacket->GetTimestamp(), storageItem->originalPacket->GetTimestamp()))
 		{
 			this->oldestSeq = seq;
 		}
@@ -86,7 +83,7 @@ namespace RTC
 
 	bool RtpStreamSend::StorageItemBuffer::Remove(uint16_t seq)
 	{
-		auto bucketIdx = StorageItemBuffer::GetBucketIndex(seq);
+		auto bucketIdx   = StorageItemBuffer::GetBucketIndex(seq);
 		auto inBucketPos = StorageItemBuffer::GetPositionInBucket(seq);
 
 		auto bucket = this->buckets[bucketIdx];
@@ -126,7 +123,7 @@ namespace RTC
 			if (!bucket)
 				continue;
 
-			for(size_t pos = 0; pos < bucket->Size() && !bucket->IsEmpty(); ++pos)
+			for (size_t pos = 0; pos < bucket->Size() && !bucket->IsEmpty(); ++pos)
 			{
 				auto item = bucket->Remove(pos);
 
@@ -156,11 +153,8 @@ namespace RTC
 
 	void RtpStreamSend::StorageItemBuffer::InvalidateOldest(uint16_t prevOldest)
 	{
-		for (
-			size_t candidateSeq = (prevOldest + 1) % (1 << 16);
-			candidateSeq != prevOldest;
-			candidateSeq = (candidateSeq + 1) % (1 << 16)
-		)
+		for (size_t candidateSeq = (prevOldest + 1) % (1 << 16); candidateSeq != prevOldest;
+		     candidateSeq        = (candidateSeq + 1) % (1 << 16))
 		{
 			auto bucketIdx = StorageItemBuffer::GetBucketIndex(candidateSeq);
 
@@ -495,7 +489,8 @@ namespace RTC
 
 			// Unfill the buffer start item.
 			MS_ASSERT(
-				this->storageItemBuffer.Remove(checkedStorageItem->sequenceNumber), "Storage item must be used");
+			  this->storageItemBuffer.Remove(checkedStorageItem->sequenceNumber),
+			  "Storage item must be used");
 		}
 
 		// Allocate a new storage item.
