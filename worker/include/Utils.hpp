@@ -2,11 +2,13 @@
 #define MS_UTILS_HPP
 
 #include "common.hpp"
+#include "Logger.hpp"
 #include <openssl/hmac.h>
 #include <cmath>
 #include <cstring> // std::memcmp(), std::memcpy()
 #include <nlohmann/json.hpp>
 #include <string>
+#include <array>
 #ifdef _WIN32
 #include <ws2ipdef.h>
 // https://stackoverflow.com/a/24550632/2085408
@@ -387,6 +389,58 @@ namespace Utils
 
 	private:
 		std::vector<T*> pool;
+	};
+
+	template<typename T, std::size_t BucketSize>
+	class Bucket {
+	public:
+		T* Get(size_t pos) const
+		{
+			MS_ASSERT(pos < this->buffer.size() && pos >= 0, "Position out of range");
+			return this->buffer[pos];
+		}
+
+		void Insert(size_t pos, T* item)
+		{
+			MS_ASSERT(pos < this->buffer.size() && pos >= 0, "Position out of range");
+			MS_ASSERT(item != nullptr, "Item must be not null");
+			++this->count;
+			this->buffer[pos] = item;
+		}
+
+		T* Remove(size_t pos)
+		{
+			MS_ASSERT(pos < this->buffer.size() && pos >= 0, "Position out of range");
+
+			auto item = this->buffer[pos];
+
+			if (item)
+			{
+				--this->count;
+				this->buffer[pos] = nullptr;
+			}
+
+			return item;
+		}
+
+		bool IsEmpty() const
+		{
+			return this->count == 0;
+		}
+
+		size_t Count() const
+		{
+			return this->count;
+		}
+
+		size_t Size() const
+		{
+			return BucketSize;
+		}
+
+	private:
+		std::array<T*, BucketSize> buffer {};
+		size_t count { 0 };
 	};
 
 } // namespace Utils

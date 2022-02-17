@@ -11,7 +11,7 @@ namespace RTC
 	/* Static. */
 
 	thread_local static Utils::ObjectPool<RtpStreamSend::StorageItem> StorageItemPool;
-	thread_local static Utils::ObjectPool<RtpStreamSend::Bucket> StorageItemBucketPool;
+	thread_local static Utils::ObjectPool<Utils::Bucket<RtpStreamSend::StorageItem, RtpStreamSend::BucketSize>> StorageItemBucketPool;
 
 	// 17: 16 bit mask + the initial sequence number.
 	static constexpr size_t MaxRequestedPackets{ 17 };
@@ -58,7 +58,7 @@ namespace RTC
 		if (!this->buckets[bucketIdx])
 		{
 			auto bucket = StorageItemBucketPool.Allocate();
-			new (bucket) RtpStreamSend::Bucket;
+			new (bucket) Utils::Bucket<RtpStreamSend::StorageItem, RtpStreamSend::BucketSize>;
 			this->buckets[bucketIdx] = bucket;
 		}
 
@@ -86,7 +86,9 @@ namespace RTC
 			return false;
 		}
 
-		bucket->Remove(inBucketPos);
+		auto item = bucket->Remove(inBucketPos);
+		resetStorageItem(item);
+		StorageItemPool.Return(item);
 
 		if (bucket->IsEmpty())
 		{
@@ -109,7 +111,16 @@ namespace RTC
 			if (!bucket)
 				continue;
 
-			bucket->Clear();
+			for(size_t pos = 0; pos < bucket->Size() && !bucket->IsEmpty(); ++pos)
+			{
+				auto item = bucket->Remove(pos);
+
+				if (item)
+				{
+					resetStorageItem(item);
+					StorageItemPool.Return(item);
+				}
+			}
 
 			StorageItemBucketPool.Return(bucket);
 			bucket = nullptr;
@@ -176,57 +187,17 @@ namespace RTC
 
 	size_t RtpStreamSend::StorageItemBuffer::GetBucketIndex(uint16_t seq)
 	{
-		return seq / RtpStreamSend::Bucket::BucketSize;
+		return seq / RtpStreamSend::BucketSize;
 	}
 
 	size_t RtpStreamSend::StorageItemBuffer::GetPositionInBucket(uint16_t seq)
 	{
-		return seq % RtpStreamSend::Bucket::BucketSize;
+		return seq % RtpStreamSend::BucketSize;
 	}
 
 	RtpStreamSend::StorageItemBuffer::~StorageItemBuffer()
 	{
 		Clear();
-	}
-
-	RtpStreamSend::StorageItem* RtpStreamSend::Bucket::Get(size_t pos) const
-	{
-		return this->buffer[pos];
-	}
-
-	void RtpStreamSend::Bucket::Insert(size_t pos, RtpStreamSend::StorageItem* item)
-	{
-		++this->count;
-		this->buffer[pos] = item;
-	}
-
-	void RtpStreamSend::Bucket::Remove(size_t pos)
-	{
-		--this->count;
-
-		auto item = this->buffer[pos];
-		this->buffer[pos] = nullptr;
-
-		resetStorageItem(item);
-		StorageItemPool.Return(item);
-	}
-
-	void RtpStreamSend::Bucket::Clear()
-	{
-		for(size_t pos = 0; pos < RtpStreamSend::Bucket::BucketSize && !this->IsEmpty(); ++pos)
-		{
-			auto item = this->buffer[pos];
-
-			if (item)
-			{
-				this->Remove(pos);
-			}
-		}
-	}
-
-	bool RtpStreamSend::Bucket::IsEmpty() const
-	{
-		return this->count == 0;
 	}
 
 	/* Instance methods. */

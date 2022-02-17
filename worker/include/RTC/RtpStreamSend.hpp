@@ -36,19 +36,8 @@ namespace RTC
 			bool rtxEncoded{ false };
 		};
 
-		class Bucket {
-		public:
-			static constexpr size_t BucketSize = 256;
-			StorageItem* Get(size_t pos) const;
-			void Insert(size_t pos, StorageItem* item);
-			void Remove(size_t pos);
-			void Clear();
-			bool IsEmpty() const;
-		private:
-			std::array<StorageItem*, BucketSize> buffer {};
-			size_t count { 0 };
-		};
-
+		static constexpr size_t BucketsCount = 256;
+		static constexpr size_t BucketSize = 256;
 	private:
 
 		// Special container that can store `StorageItem*` elements addressable by their `uint16_t`
@@ -56,7 +45,6 @@ namespace RTC
 		// minimum and maximum sequence number instead all 65536 potential elements.
 		class StorageItemBuffer
 		{
-			static constexpr size_t BucketsCount = 256;
 		public:
 			~StorageItemBuffer();
 
@@ -72,7 +60,7 @@ namespace RTC
 			static size_t GetPositionInBucket(uint16_t seq);
 
 			int32_t oldestSeq { -1 };
-			std::array<Bucket*, BucketsCount> buckets {};
+			std::array<Utils::Bucket<StorageItem, BucketSize>*, BucketsCount> buckets {};
 		};
 
 	public:
