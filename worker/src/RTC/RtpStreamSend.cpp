@@ -149,7 +149,7 @@ namespace RTC
 			return;
 		}
 
-		if (oldest->originalPacket->GetTimestamp() > storageItem->originalPacket->GetTimestamp())
+		if (SeqManager<uint32_t>::IsSeqHigherThan(oldest->originalPacket->GetTimestamp(), storageItem->originalPacket->GetTimestamp()))
 		{
 			this->oldestSeq = seq;
 		}
