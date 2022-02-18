@@ -484,7 +484,7 @@ namespace RTC
 
 			// Cleanup is finished if we found an item with recent enough packet, but also account
 			// for out-of-order packets.
-			if (diffMs < this->retransmissionBufferSize || packetTs < checkedPacketTs)
+			if (diffMs < this->retransmissionBufferSize || SeqManager<uint32_t>::IsSeqHigherThan(checkedPacketTs, packetTs))
 				break;
 
 			// Unfill the buffer start item.
