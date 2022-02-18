@@ -21,7 +21,6 @@ namespace RTC
 	static constexpr uint32_t MaxRetransmissionDelay{ 2000 };
 	static constexpr uint32_t DefaultRtt{ 100 };
 	static constexpr size_t SeqRange{ 65536 };
-	static constexpr uint16_t MaxSeq = std::numeric_limits<uint16_t>::max();
 
 	static void resetStorageItem(RTC::RtpStreamSend::StorageItem* storageItem)
 	{
@@ -38,7 +37,7 @@ namespace RTC
 
 	RtpStreamSend::StorageItem* RtpStreamSend::StorageItemBuffer::Get(uint16_t seq)
 	{
-		auto idx{ static_cast<uint16_t>((seq - this->startSeq) % MaxSeq) };
+		auto idx{ static_cast<uint16_t>((seq - this->startSeq) % SeqRange) };
 
 		if (this->buffer.empty() || idx >= static_cast<uint16_t>(this->buffer.size()))
 			return nullptr;
@@ -56,7 +55,7 @@ namespace RTC
 			return true;
 		}
 
-		auto idx{ static_cast<uint16_t>((seq - this->startSeq) % MaxSeq) };
+		auto idx{ static_cast<uint16_t>((seq - this->startSeq) % SeqRange) };
 
 		if (idx < static_cast<uint16_t>(this->buffer.size()))
 		{
@@ -68,10 +67,10 @@ namespace RTC
 		// Calculate how many elements would it be necessary to add when pushing new item to the back of
 		// the deque.
 		auto addToBack{ static_cast<uint16_t>((seq - (this->startSeq + this->buffer.size() - 1))) %
-			              MaxSeq };
+			              SeqRange };
 		// Calculate how many elements would it be necessary to add when pushing new item to the front
 		// of the deque.
-		auto addToFront{ static_cast<uint16_t>((this->startSeq - seq) % MaxSeq) };
+		auto addToFront{ static_cast<uint16_t>((this->startSeq - seq) % SeqRange) };
 
 		// Select the side of deque where fewer elements need to be added, while preferring the end.
 		if (addToBack <= addToFront)
@@ -100,7 +99,7 @@ namespace RTC
 		if (this->buffer.empty())
 			return false;
 
-		auto idx{ static_cast<uint16_t>((seq - this->startSeq) % MaxSeq) };
+		auto idx{ static_cast<uint16_t>((seq - this->startSeq) % SeqRange) };
 
 		this->buffer[idx] = nullptr;
 
@@ -456,7 +455,7 @@ namespace RTC
 
 						// Cleanup is finished if we found an item with recent enough packet, but also account
 						// for out-of-order packets.
-						if (diffMs < this->retransmissionBufferSize || packetTs < checkedPacketTs)
+						if (diffMs < this->retransmissionBufferSize || SeqManager<uint32_t>::IsSeqHigherThan(checkedPacketTs, packetTs))
 							break;
 
 						// Reset (free RTP packet) the old storage item.
