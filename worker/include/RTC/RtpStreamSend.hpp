@@ -20,6 +20,8 @@ namespace RTC
 	public:
 		struct StorageItem
 		{
+			using Allocator = Utils::ObjectPoolAllocator<RtpStreamSend::StorageItem>;
+
 			// Original packet.
 			RTC::RtpPacket::SharedPtr originalPacket{ nullptr };
 			// Correct SSRC since original packet will have original ssrc.

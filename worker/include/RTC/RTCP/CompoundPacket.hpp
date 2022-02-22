@@ -2,6 +2,7 @@
 #define MS_RTC_RTCP_COMPOUND_PACKET_HPP
 
 #include "common.hpp"
+#include "Utils.hpp"
 #include "RTC/RTCP/ReceiverReport.hpp"
 #include "RTC/RTCP/Sdes.hpp"
 #include "RTC/RTCP/SenderReport.hpp"
@@ -16,6 +17,7 @@ namespace RTC
 		{
 		public:
 			using UniquePtr = std::unique_ptr<CompoundPacket>;
+			using Allocator = Utils::ObjectPoolAllocator<CompoundPacket>;
 			static UniquePtr Create();
 
 		public:
@@ -61,6 +63,7 @@ namespace RTC
 			~CompoundPacket() = default;
 
 			friend struct std::default_delete<RTC::RTCP::CompoundPacket>;
+			friend Allocator;
 			static void ReturnIntoPool(CompoundPacket* packet);
 
 		private:

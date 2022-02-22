@@ -351,10 +351,23 @@ namespace Utils
 	};
 
 	template<typename T>
-	class ObjectPool
+	class ObjectPoolAllocator
 	{
 	public:
-		~ObjectPool()
+		typedef T value_type;
+		thread_local static Utils::ObjectPoolAllocator<T> Pool;
+
+		ObjectPoolAllocator() : pool(Pool.pool)
+		{
+		}
+
+		template<typename U>
+		ObjectPoolAllocator(const ObjectPoolAllocator<U>& other)
+		  : pool(ObjectPoolAllocator<T>::Pool.pool)
+		{
+		}
+
+		~ObjectPoolAllocator()
 		{
 			for (auto ptr : this->pool)
 			{
@@ -362,8 +375,36 @@ namespace Utils
 			}
 		}
 
-		// Get pointer to allocated memory. This can be newly allocated memory or re-use of previously
-		// returned object. Object is not initialized and shouldn't be considered to be in a valid state.
+		template<typename U>
+		struct rebind
+		{
+			typedef ObjectPoolAllocator<U> other;
+		};
+
+		void destroy(T* ptr)
+		{
+			if (ptr)
+			{
+				ptr->~T();
+			}
+		}
+
+		template<typename U, typename... Args>
+		void construct(U* p, Args&&... args)
+		{
+			new (p) U(std::forward<Args>(args)...);
+		}
+
+		T* allocate(size_t n)
+		{
+			if (n > 1)
+			{
+				return static_cast<T*>(std::malloc(sizeof(T) * n));
+			}
+
+			return this->Allocate();
+		}
+
 		T* Allocate()
 		{
 			if (this->pool.empty())
@@ -377,18 +418,30 @@ namespace Utils
 			return ptr;
 		}
 
-		// Return allocated memory into internal pool for future use, make sure to run destructor before
-		// returning memory, ObjectPool will only de-allocate memory on exit.
+		void deallocate(T* ptr, size_t n)
+		{
+			if (n > 1 && ptr)
+			{
+				std::free(ptr);
+				return;
+			}
+
+			this->Return(ptr);
+		}
+
 		void Return(T* ptr)
 		{
-			if (ptr)
-				this->pool.push_back(ptr);
+			if (!ptr)
+			{
+				return;
+			}
+
+			this->pool.push_back(ptr);
 		}
 
 	private:
 		std::vector<T*> pool;
 	};
-
 } // namespace Utils
 
 #endif

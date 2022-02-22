@@ -29,7 +29,6 @@ namespace RTC
 {
 	static size_t DefaultSctpSendBufferSize{ 262144 }; // 2^18.
 	static size_t MaxSctpSendBufferSize{ 268435456 };  // 2^28.
-	thread_local static Utils::ObjectPool<Transport::OnSendCallbackCtx> TransportOnSendCallbackCtxPool;
 
 #ifdef ENABLE_RTC_SENDER_BANDWIDTH_ESTIMATOR
 	void Transport::OnSendCallback(bool sent, OnSendCallbackCtx* ctx)
@@ -43,7 +42,7 @@ namespace RTC
 			ctx->senderBwe->RtpPacketSent(ctx->sentInfo);
 		}
 
-		TransportOnSendCallbackCtxPool.Return(ctx);
+		OnSendCallbackCtx::Allocator::Pool.Return(ctx);
 	}
 #else
 	void Transport::OnSendCallback(bool sent, OnSendCallbackCtx* ctx)
@@ -51,7 +50,7 @@ namespace RTC
 		if (sent)
 			ctx->tccClient->PacketSent(ctx->packetInfo, DepLibUV::GetTimeMsInt64());
 
-		TransportOnSendCallbackCtxPool.Return(ctx);
+		OnSendCallbackCtx::Allocator::Pool.Return(ctx);
 	}
 #endif
 
@@ -2606,7 +2605,7 @@ namespace RTC
 			// Indicate the pacer (and prober) that a packet is to be sent.
 			this->tccClient->InsertPacket(packetInfo);
 
-			auto* ctx = TransportOnSendCallbackCtxPool.Allocate();
+			auto* ctx = OnSendCallbackCtx::Allocator::Pool.Allocate();
 #ifdef ENABLE_RTC_SENDER_BANDWIDTH_ESTIMATOR
 			auto* senderBwe = this->senderBwe;
 			RTC::SenderBandwidthEstimator::SentInfo sentInfo;
@@ -2663,7 +2662,7 @@ namespace RTC
 			// Indicate the pacer (and prober) that a packet is to be sent.
 			this->tccClient->InsertPacket(packetInfo);
 
-			auto* ctx = TransportOnSendCallbackCtxPool.Allocate();
+			auto* ctx = OnSendCallbackCtx::Allocator::Pool.Allocate();
 #ifdef ENABLE_RTC_SENDER_BANDWIDTH_ESTIMATOR
 			auto* senderBwe = this->senderBwe;
 			RTC::SenderBandwidthEstimator::SentInfo sentInfo;
@@ -2987,7 +2986,8 @@ namespace RTC
 			// Indicate the pacer (and prober) that a packet is to be sent.
 			this->tccClient->InsertPacket(packetInfo);
 
-			auto* ctx = TransportOnSendCallbackCtxPool.Allocate();
+			auto* ctx = OnSendCallbackCtx::Allocator::Pool.Allocate();
+			OnSendCallbackCtx::Allocator::Pool.construct(ctx);
 #ifdef ENABLE_RTC_SENDER_BANDWIDTH_ESTIMATOR
 			auto* senderBwe = this->senderBwe;
 			RTC::SenderBandwidthEstimator::SentInfo sentInfo;

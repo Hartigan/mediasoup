@@ -8,23 +8,21 @@ namespace RTC
 {
 	namespace RTCP
 	{
-		thread_local static Utils::ObjectPool<CompoundPacket> CompoundPacketPool;
-
 		/* Instance methods. */
 
 		CompoundPacket::UniquePtr CompoundPacket::Create()
 		{
-			auto* packet = CompoundPacketPool.Allocate();
-
-			return UniquePtr(new (packet) CompoundPacket());
+			auto* packet = CompoundPacket::Allocator::Pool.Allocate();
+			CompoundPacket::Allocator::Pool.construct(packet);
+			return UniquePtr(packet);
 		}
 
 		void CompoundPacket::ReturnIntoPool(CompoundPacket* packet)
 		{
 			if (packet)
 			{
-				packet->~CompoundPacket();
-				CompoundPacketPool.Return(packet);
+				CompoundPacket::Allocator::Pool.destroy(packet);
+				CompoundPacket::Allocator::Pool.Return(packet);
 			}
 		}
 
