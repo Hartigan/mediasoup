@@ -442,6 +442,9 @@ namespace Utils
 	private:
 		std::vector<T*> pool;
 	};
+
+	template<typename T>
+	thread_local Utils::ObjectPoolAllocator<T> Utils::ObjectPoolAllocator<T>::Pool;
 } // namespace Utils
 
 #endif
