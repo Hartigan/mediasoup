@@ -2606,6 +2606,7 @@ namespace RTC
 			this->tccClient->InsertPacket(packetInfo);
 
 			auto* ctx = OnSendCallbackCtx::Allocator::Pool.Allocate();
+			OnSendCallbackCtx::Allocator::Pool.construct(ctx);
 #ifdef ENABLE_RTC_SENDER_BANDWIDTH_ESTIMATOR
 			auto* senderBwe = this->senderBwe;
 			RTC::SenderBandwidthEstimator::SentInfo sentInfo;
@@ -2663,6 +2664,7 @@ namespace RTC
 			this->tccClient->InsertPacket(packetInfo);
 
 			auto* ctx = OnSendCallbackCtx::Allocator::Pool.Allocate();
+			OnSendCallbackCtx::Allocator::Pool.construct(ctx);
 #ifdef ENABLE_RTC_SENDER_BANDWIDTH_ESTIMATOR
 			auto* senderBwe = this->senderBwe;
 			RTC::SenderBandwidthEstimator::SentInfo sentInfo;
