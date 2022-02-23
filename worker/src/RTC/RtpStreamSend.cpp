@@ -66,6 +66,7 @@ namespace RTC
 					item->originalPacket.get(),
 					item->originalPacketState.c_str()
 				);
+			}
 		}
 
 		if (this->buffer.empty())
