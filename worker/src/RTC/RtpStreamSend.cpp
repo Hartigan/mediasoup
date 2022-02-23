@@ -59,12 +59,11 @@ namespace RTC
 					continue;
 				}
 
-				MS_ERROR_STD("ssrc: %" PRIu32 ", seq: %" PRIu16 ", timestamp: %" PRIu32 ", originalPacket: %p, originalPacketState: %s",
+				MS_ERROR_STD("ssrc: %" PRIu32 ", seq: %" PRIu16 ", timestamp: %" PRIu32 ", originalPacket: %p",
 					item->ssrc,
 					item->sequenceNumber,
 					item->timestamp,
-					item->originalPacket.get(),
-					item->originalPacketState.c_str()
+					item->originalPacket.get()
 				);
 			}
 		}
