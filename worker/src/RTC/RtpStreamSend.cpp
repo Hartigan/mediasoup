@@ -494,7 +494,6 @@ namespace RTC
 					StorageItem::Allocator::Pool.Return(checkedStorageItem);
 					// Unfill the buffer start item.
 					MS_ASSERT(this->storageItemBuffer.RemoveFirst(), "Storage item must be used");
-					MS_ERROR_STD("Packet deleted");
 				}
 			}
 		}
