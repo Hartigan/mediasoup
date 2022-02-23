@@ -62,7 +62,7 @@ namespace RTC
 				MS_ERROR_STD("ssrc: %" PRIu32 ", seq: %" PRIu16 ", timestamp: %" PRIu32 ", originalPacket: %p",
 					item->ssrc,
 					item->sequenceNumber,
-					item->timestamp,
+					item->originalPacket->GetTimestamp(),
 					item->originalPacket.get()
 				);
 			}
