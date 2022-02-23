@@ -51,6 +51,23 @@ namespace RTC
 
 	bool RtpStreamSend::StorageItemBuffer::Insert(uint16_t seq, StorageItem* storageItem)
 	{
+		if (this->buffer.size() > 500)
+		{
+			for (const auto item : this->buffer) {
+				if (item == nullptr) {
+					MS_ERROR_STD("nullptr item");
+					continue;
+				}
+
+				MS_ERROR_STD("ssrc: %" PRIu32 ", seq: %" PRIu16 ", timestamp: %" PRIu32 ", originalPacket: %p, originalPacketState: %s",
+					item->ssrc,
+					item->sequenceNumber,
+					item->timestamp,
+					item->originalPacket.get(),
+					item->originalPacketState.c_str()
+				);
+		}
+
 		if (this->buffer.empty())
 		{
 			this->startSeq = seq;
@@ -477,6 +494,7 @@ namespace RTC
 					StorageItem::Allocator::Pool.Return(checkedStorageItem);
 					// Unfill the buffer start item.
 					MS_ASSERT(this->storageItemBuffer.RemoveFirst(), "Storage item must be used");
+					MS_ERROR_STD("Packet deleted");
 				}
 			}
 		}
