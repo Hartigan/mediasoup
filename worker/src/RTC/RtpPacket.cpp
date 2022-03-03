@@ -149,7 +149,7 @@ namespace RTC
 		if (this->buffer)
 		{
 			this->buffer->~array();
-			RtpPacket::BufferAllocator::Pool.Return(this->buffer);
+			RtpPacket::BufferAllocator::Pool.deallocate(this->buffer, 1);
 			this->buffer = nullptr;
 		}
 	}
@@ -640,8 +640,8 @@ namespace RTC
 	{
 		MS_TRACE();
 
-		auto* buffer = RtpPacket::BufferAllocator::Pool.Allocate();
-		RtpPacket::BufferAllocator::Pool.construct(buffer);
+		auto* buffer = RtpPacket::BufferAllocator::Pool.allocate(1);
+		RtpPacket::BufferAllocatorTraits::construct(RtpPacket::BufferAllocator::Pool, buffer);
 
 		auto* ptr = const_cast<uint8_t*>(buffer->data());
 		size_t numBytes{ 0 };

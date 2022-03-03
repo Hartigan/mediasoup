@@ -12,8 +12,8 @@ namespace RTC
 
 		CompoundPacket::UniquePtr CompoundPacket::Create()
 		{
-			auto* packet = CompoundPacket::Allocator::Pool.Allocate();
-			CompoundPacket::Allocator::Pool.construct(packet);
+			auto* packet = CompoundPacket::Allocator::Pool.allocate(1);
+			CompoundPacket::AllocatorTraits::construct(CompoundPacket::Allocator::Pool, packet);
 			return UniquePtr(packet);
 		}
 
@@ -21,8 +21,8 @@ namespace RTC
 		{
 			if (packet)
 			{
-				CompoundPacket::Allocator::Pool.destroy(packet);
-				CompoundPacket::Allocator::Pool.Return(packet);
+				CompoundPacket::AllocatorTraits::destroy(CompoundPacket::Allocator::Pool, packet);
+				CompoundPacket::Allocator::Pool.deallocate(packet, 1);
 			}
 		}
 

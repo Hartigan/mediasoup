@@ -381,20 +381,6 @@ namespace Utils
 			typedef ObjectPoolAllocator<U> other;
 		};
 
-		void destroy(T* ptr)
-		{
-			if (ptr)
-			{
-				ptr->~T();
-			}
-		}
-
-		template<typename U, typename... Args>
-		void construct(U* p, Args&&... args)
-		{
-			new (p) U(std::forward<Args>(args)...);
-		}
-
 		T* allocate(size_t n)
 		{
 			if (n > 1)
@@ -402,11 +388,6 @@ namespace Utils
 				return static_cast<T*>(std::malloc(sizeof(T) * n));
 			}
 
-			return this->Allocate();
-		}
-
-		T* Allocate()
-		{
 			if (this->pool.empty())
 			{
 				return static_cast<T*>(std::malloc(sizeof(T)));
@@ -420,19 +401,14 @@ namespace Utils
 
 		void deallocate(T* ptr, size_t n)
 		{
-			if (n > 1 && ptr)
+			if (!ptr)
 			{
-				std::free(ptr);
 				return;
 			}
 
-			this->Return(ptr);
-		}
-
-		void Return(T* ptr)
-		{
-			if (!ptr)
+			if (n > 1)
 			{
+				std::free(ptr);
 				return;
 			}
 

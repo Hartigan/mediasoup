@@ -145,7 +145,7 @@ namespace RTC
 			// Reset (free RTP packet) the storage item.
 			resetStorageItem(storageItem);
 			// Return into the pool.
-			StorageItem::Allocator::Pool.Return(storageItem);
+			StorageItem::Allocator::Pool.deallocate(storageItem, 1);
 		}
 
 		this->buffer.clear();
@@ -433,10 +433,10 @@ namespace RTC
 		else
 		{
 			// Allocate a new storage item.
-			storageItem = StorageItem::Allocator::Pool.Allocate();
+			storageItem = StorageItem::Allocator::Pool.allocate(1);
 			// Memory is not initialized in any way, reset it. Create a new StorageItem instance
 			// in this memory.
-			StorageItem::Allocator::Pool.construct(storageItem);
+			StorageItem::AllocatorTraits::construct(StorageItem::Allocator::Pool, storageItem);
 			MS_ASSERT(this->storageItemBuffer.Insert(seq, storageItem), "sequence number must be empty");
 
 			auto packetTs{ packet->GetTimestamp() };
@@ -474,7 +474,7 @@ namespace RTC
 					// Reset (free RTP packet) the old storage item.
 					resetStorageItem(checkedStorageItem);
 					// Return into the pool.
-					StorageItem::Allocator::Pool.Return(checkedStorageItem);
+					StorageItem::Allocator::Pool.deallocate(checkedStorageItem, 1);
 					// Unfill the buffer start item.
 					MS_ASSERT(this->storageItemBuffer.RemoveFirst(), "Storage item must be used");
 				}

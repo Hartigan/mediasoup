@@ -20,7 +20,8 @@ namespace RTC
 	public:
 		struct StorageItem
 		{
-			using Allocator = Utils::ObjectPoolAllocator<RtpStreamSend::StorageItem>;
+			using Allocator       = Utils::ObjectPoolAllocator<RtpStreamSend::StorageItem>;
+			using AllocatorTraits = std::allocator_traits<Allocator>;
 
 			// Original packet.
 			RTC::RtpPacket::SharedPtr originalPacket{ nullptr };

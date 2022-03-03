@@ -42,7 +42,7 @@ namespace RTC
 			ctx->senderBwe->RtpPacketSent(ctx->sentInfo);
 		}
 
-		OnSendCallbackCtx::Allocator::Pool.Return(ctx);
+		OnSendCallbackCtx::Allocator::Pool.deallocate(ctx, 1);
 	}
 #else
 	void Transport::OnSendCallback(bool sent, OnSendCallbackCtx* ctx)
@@ -50,7 +50,7 @@ namespace RTC
 		if (sent)
 			ctx->tccClient->PacketSent(ctx->packetInfo, DepLibUV::GetTimeMsInt64());
 
-		OnSendCallbackCtx::Allocator::Pool.Return(ctx);
+		OnSendCallbackCtx::Allocator::Pool.deallocate(ctx, 1);
 	}
 #endif
 
@@ -2605,8 +2605,8 @@ namespace RTC
 			// Indicate the pacer (and prober) that a packet is to be sent.
 			this->tccClient->InsertPacket(packetInfo);
 
-			auto* ctx = OnSendCallbackCtx::Allocator::Pool.Allocate();
-			OnSendCallbackCtx::Allocator::Pool.construct(ctx);
+			auto* ctx = OnSendCallbackCtx::Allocator::Pool.allocate(1);
+			OnSendCallbackCtx::AllocatorTraits::construct(OnSendCallbackCtx::Allocator::Pool, ctx);
 #ifdef ENABLE_RTC_SENDER_BANDWIDTH_ESTIMATOR
 			auto* senderBwe = this->senderBwe;
 			RTC::SenderBandwidthEstimator::SentInfo sentInfo;
@@ -2663,8 +2663,8 @@ namespace RTC
 			// Indicate the pacer (and prober) that a packet is to be sent.
 			this->tccClient->InsertPacket(packetInfo);
 
-			auto* ctx = OnSendCallbackCtx::Allocator::Pool.Allocate();
-			OnSendCallbackCtx::Allocator::Pool.construct(ctx);
+			auto* ctx = OnSendCallbackCtx::Allocator::Pool.allocate(1);
+			OnSendCallbackCtx::AllocatorTraits::construct(OnSendCallbackCtx::Allocator::Pool, ctx);
 #ifdef ENABLE_RTC_SENDER_BANDWIDTH_ESTIMATOR
 			auto* senderBwe = this->senderBwe;
 			RTC::SenderBandwidthEstimator::SentInfo sentInfo;
@@ -2988,8 +2988,8 @@ namespace RTC
 			// Indicate the pacer (and prober) that a packet is to be sent.
 			this->tccClient->InsertPacket(packetInfo);
 
-			auto* ctx = OnSendCallbackCtx::Allocator::Pool.Allocate();
-			OnSendCallbackCtx::Allocator::Pool.construct(ctx);
+			auto* ctx = OnSendCallbackCtx::Allocator::Pool.allocate(1);
+			OnSendCallbackCtx::AllocatorTraits::construct(OnSendCallbackCtx::Allocator::Pool, ctx);
 #ifdef ENABLE_RTC_SENDER_BANDWIDTH_ESTIMATOR
 			auto* senderBwe = this->senderBwe;
 			RTC::SenderBandwidthEstimator::SentInfo sentInfo;
