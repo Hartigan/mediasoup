@@ -16,7 +16,12 @@ namespace RTC
 		class CompoundPacket
 		{
 		public:
-			using UniquePtr       = std::unique_ptr<CompoundPacket>;
+			struct CompoundPacketDeleter
+			{
+				void operator()(CompoundPacket* packet) const;
+			};
+
+			using UniquePtr       = std::unique_ptr<CompoundPacket, CompoundPacketDeleter>;
 			using Allocator       = Utils::ObjectPoolAllocator<CompoundPacket>;
 			using AllocatorTraits = std::allocator_traits<Allocator>;
 			static UniquePtr Create();
@@ -63,9 +68,8 @@ namespace RTC
 			// Use `CompoundPacket::ReturnIntoPool()` instead
 			~CompoundPacket() = default;
 
-			friend struct std::default_delete<RTC::RTCP::CompoundPacket>;
+			friend struct CompoundPacketDeleter;
 			friend AllocatorTraits;
-			static void ReturnIntoPool(CompoundPacket* packet);
 
 		private:
 			uint8_t* header{ nullptr };
@@ -80,15 +84,6 @@ namespace RTC
 
 namespace std
 {
-	template<>
-	struct default_delete<RTC::RTCP::CompoundPacket>
-	{
-		void operator()(RTC::RTCP::CompoundPacket* ptr) const
-		{
-			RTC::RTCP::CompoundPacket::ReturnIntoPool(ptr);
-		}
-	};
-
 	template<>
 	struct allocator_traits<RTC::RTCP::CompoundPacket::Allocator>
 	{

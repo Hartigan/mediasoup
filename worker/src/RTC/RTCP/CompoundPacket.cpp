@@ -17,15 +17,6 @@ namespace RTC
 			return UniquePtr(packet);
 		}
 
-		void CompoundPacket::ReturnIntoPool(CompoundPacket* packet)
-		{
-			if (packet)
-			{
-				CompoundPacket::AllocatorTraits::destroy(CompoundPacket::Allocator::Pool, packet);
-				CompoundPacket::Allocator::Pool.deallocate(packet, 1);
-			}
-		}
-
 		void CompoundPacket::Serialize(uint8_t* data)
 		{
 			MS_TRACE();
@@ -160,6 +151,15 @@ namespace RTC
 			MS_TRACE();
 
 			this->xrPacket.AddReport(report);
+		}
+
+		void CompoundPacket::CompoundPacketDeleter::operator()(CompoundPacket* packet) const
+		{
+			if (packet)
+			{
+				CompoundPacket::AllocatorTraits::destroy(CompoundPacket::Allocator::Pool, packet);
+				CompoundPacket::Allocator::Pool.deallocate(packet, 1);
+			}
 		}
 	} // namespace RTCP
 } // namespace RTC
