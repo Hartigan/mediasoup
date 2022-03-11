@@ -129,7 +129,7 @@ namespace RTC
 		// Reset (free RTP packet) the old storage item.
 		resetStorageItem(storageItem);
 		// Return into the pool.
-		StorageItemPool.Return(storageItem);
+		StorageItem::Allocator::Pool.deallocate(storageItem, 1);
 
 		this->buffer[0] = nullptr;
 
