@@ -140,7 +140,7 @@ namespace RTC
 
 		static SharedPtr Parse(const uint8_t* data, size_t len);
 
-	private:
+	public:
 		RtpPacket(
 		  Header* header,
 		  HeaderExtension* headerExtension,
