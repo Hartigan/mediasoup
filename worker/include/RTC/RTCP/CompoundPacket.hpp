@@ -65,7 +65,7 @@ namespace RTC
 		private:
 			// Use `CompoundPacket::Create()` instead
 			CompoundPacket() = default;
-			// Use `CompoundPacket::ReturnIntoPool()` instead
+			// Used by CompoundPacketDeleter
 			~CompoundPacket() = default;
 
 			friend struct CompoundPacketDeleter;
@@ -80,7 +80,7 @@ namespace RTC
 			ExtendedReportPacket xrPacket;
 		};
 	} // namespace RTCP
-} // namespace RTC
+} // namespace RTCpublic
 
 namespace std
 {
