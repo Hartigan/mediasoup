@@ -80,7 +80,7 @@ namespace RTC
 			ExtendedReportPacket xrPacket;
 		};
 	} // namespace RTCP
-} // namespace RTCpublic
+} // namespace RTC
 
 namespace std
 {
