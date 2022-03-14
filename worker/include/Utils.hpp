@@ -356,7 +356,7 @@ namespace Utils
 	template<typename T>
 	class ObjectPoolAllocator
 	{
-		thread_local static std::shared_ptr<std::vector<T*>> pool_data;
+		std::shared_ptr<std::vector<T*>> pool_data;
 
 	public:
 		typedef T value_type;
@@ -364,23 +364,21 @@ namespace Utils
 
 		ObjectPoolAllocator()
 		{
-			if (!pool_data)
-			{
-				pool_data = std::shared_ptr<std::vector<T*>>(
-				  new std::vector<T*>(),
-				  [](std::vector<T*>* pool)
+			pool_data = std::shared_ptr<std::vector<T*>>(
+			  new std::vector<T*>(),
+			  [](std::vector<T*>* pool)
+			  {
+				  for (auto* ptr : *pool)
 				  {
-					  for (auto* ptr : *pool)
-					  {
-						  std::free(ptr);
-					  }
-					  delete pool;
-				  });
-			}
+					  std::free(ptr);
+				  }
+				  delete pool;
+			  });
 		}
 
 		template<typename U>
-		ObjectPoolAllocator(const ObjectPoolAllocator<U>& other) : ObjectPoolAllocator()
+		ObjectPoolAllocator(const ObjectPoolAllocator<U>& other)
+		  : pool_data(ObjectPoolAllocator<T>::Pool.pool_data)
 		{
 		}
 
@@ -401,13 +399,13 @@ namespace Utils
 				return static_cast<T*>(std::malloc(sizeof(T) * n));
 			}
 
-			if (pool_data->empty())
+			if (this->pool_data->empty())
 			{
 				return static_cast<T*>(std::malloc(sizeof(T)));
 			}
 
-			T* ptr = pool_data->back();
-			pool_data->pop_back();
+			T* ptr = this->pool_data->back();
+			this->pool_data->pop_back();
 
 			return ptr;
 		}
@@ -428,16 +426,13 @@ namespace Utils
 #ifdef MS_MEM_POOL_FREE_ON_RETURN
 			std::free(ptr);
 #else
-			pool_data->push_back(ptr);
+			this->pool_data->push_back(ptr);
 #endif
 		}
 	};
 
 	template<typename T>
 	thread_local Utils::ObjectPoolAllocator<T> Utils::ObjectPoolAllocator<T>::Pool;
-
-	template<typename T>
-	thread_local std::shared_ptr<std::vector<T*>> Utils::ObjectPoolAllocator<T>::pool_data;
 } // namespace Utils
 
 #endif
