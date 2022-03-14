@@ -386,12 +386,6 @@ namespace Utils
 		{
 		}
 
-		template<typename U>
-		struct rebind
-		{
-			typedef ObjectPoolAllocator<U> other;
-		};
-
 		T* allocate(size_t n)
 		{
 			if (n > 1)
