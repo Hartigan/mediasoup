@@ -648,22 +648,4 @@ namespace RTC
 		RtpPacketBuffer* buffer{ nullptr };
 	};
 } // namespace RTC
-
-namespace std
-{
-	template<>
-	struct allocator_traits<RTC::RtpPacket::Allocator>
-	{
-		template<typename... Args>
-		static void construct(RTC::RtpPacket::Allocator& a, RTC::RtpPacket* p, Args&&... args)
-		{
-			new (p) RTC::RtpPacket(forward<Args>(args)...);
-		}
-
-		static void destroy(RTC::RtpPacket::Allocator& a, RTC::RtpPacket* p)
-		{
-			p->~RtpPacket();
-		}
-	};
-} // namespace std
 #endif
